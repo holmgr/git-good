@@ -1,0 +1,285 @@
+\documentclass[10pt]{beamer}
+
+\usetheme{metropolis}
+\usepackage{appendixnumberbeamer}
+
+\usepackage{booktabs}
+\usepackage[scale=2]{ccicons}
+
+\usepackage{pgfplots}
+\usepgfplotslibrary{dateplot}
+
+\usepackage{xspace}
+\newcommand{\themename}{\textbf{\textsc{metropolis}}\xspace}
+
+\usepackage{listings}
+\hypersetup{
+    urlcolor=cyan,
+}
+
+\title{Git good}
+\subtitle{Git tips and workflow}
+\date{\today}
+\author{Viktor Holmgren}
+\institute{LiTHe kod}
+\titlegraphic{\hfill\includegraphics[height=1.5cm]{lithekod-logo.pdf}}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}{Table of contents}
+  \setbeamertemplate{section in toc}[sections numbered]
+  \tableofcontents[hideallsubsections]
+\end{frame}
+
+\section{Match that flow}
+
+\begin{frame}[fragile]{Master and develop}
+  Git Flow workflow typically recommends \emph{two main branches};
+  \begin{description}
+    \item master: official releases
+    \item develop: integration branch for features
+  \end{description}
+
+  \begin{lstlisting}
+  git branch develop
+  git push -u origin develop
+  \end{lstlisting}
+
+  \includegraphics[width=\textwidth]{developbranch}
+
+\end{frame}
+\begin{frame}[fragile]{Use them branches yo}
+  Using Topic branches (feature/bugfix) is an extremely good practice!
+  \begin{itemize}
+    \item Create a new branch from develop for each new \emph{feature}
+    \item Develop your feature
+    \item Interactive rebase if needed to clean up code
+    \item Merge into develop using CI
+  \end{itemize}
+
+  \includegraphics[width=\textwidth]{feature}
+\end{frame}
+
+\begin{frame}[fragile]{Lets ship it!}
+
+  \begin{itemize}
+    \item When develop has enough features, or release is apporaching
+    \item Fork new branch from develop
+    \item Continue with bugfixes, documentation but \textbf{no features} 
+    \item When ready merge \emph{release} into \emph{master} and tag, merge \emph{master} into \emph{develop}
+  \end{itemize}
+
+  \textbf{Good}: Work on release and develop in parallel, easy to see what realease is in process
+
+  \includegraphics[width=0.75\textwidth]{release}
+\end{frame}
+
+\section{Making it look nice af}
+\begin{frame}{Patch it up baby}
+  \begin{columns}[T] % contents are top vertically aligned
+     \begin{column}[T]{.5\textwidth} % each column can also be its own environment
+      Git stores changes in three separate states:
+
+      \begin{itemize}
+        \item {Working directory}: Your files locally, currently.
+        \item {Staged/Index}: Changes to be committed.
+        \item {Committed}: Changes stored in the history.
+      \end{itemize}
+
+      \includegraphics[width=\textwidth]{status}
+
+     \end{column}
+     \begin{column}[T]{.5\textwidth} % alternative top-align that's better for graphics
+      Use \textit{git status} and git will tell you what to do!
+      \begin{itemize}
+        \item \textit{git add} add files to index, \textit{git add -p} adds \textit{parts} of a file
+        \item \textit{git reset} removes files from index, \textit{git reset -p} removes \textit{parts} of a file
+        \item \textit{git reset --soft} removes commits and moves changes to index 
+        \item \textit{git reset --hard} removes commits and discards changes.
+      \end{itemize}
+     \end{column}
+   \end{columns}
+\end{frame}
+
+\begin{frame}{Stashing them goodies}
+  Sometimes you need to switch to work on something else, or store an attempt.
+  Either use a \textit{Work in progress} branch or stash your changes.
+  \begin{itemize}
+  \item WIP: \textit{git checkout -b WIP-<something> \&\& git add . \&\& git commit -m 'WIP'}
+    \item Stash: \textit{git stash} then later \textit{git stash pop}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{What the rebase?}
+  \textit{Rebasing} is an alternative to \textit{merging}.
+
+  Will move commits from a given branch to the current branch.
+
+  \begin{lstlisting}
+  git rebase <branch>
+  \end{lstlisting}
+
+  \begin{itemize}
+		\item Results in a linear history
+		\item Will rewrite history (different history results in different commits)
+	\end{itemize}
+
+  \textbf{You shallt not rebase any shared changes}
+
+  With great power comes great responsibility
+  \includegraphics[width=0.75\textwidth]{rebase}
+\end{frame}
+
+\begin{frame}[fragile]{What kind of sorcery is this?}
+  Select and transform commits arbitrarily 
+
+  \begin{lstlisting}
+  git rebase -i <branch>
+  \end{lstlisting}
+
+  \begin{itemize}
+		\item Remove or add commits at any point
+		\item Change order of commits
+    \item Squash commits together
+		\item Edit commit messages at any point
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[plain]{What kind of sorcery is this?}
+  \includegraphics[width=\textwidth]{rebasing}
+\end{frame}
+
+\begin{frame}{But why?}
+  \textbf{Please use before you feature/bugfix branch to remote}.
+  \begin{itemize}
+    \item Removing ulgy: fix <insert minor problem> commits by squash
+    \item Undoing part of the work
+    \item Splitting one large commit into smaller parts
+    \item Combining smaller relevant parts
+		\item Fix spelling mistakes in commit messages
+    \item Correcing styleguide or adding comments in the same commit
+    \item ...
+	\end{itemize}
+\end{frame}
+
+\section{What the hell is happening?!}
+\begin{frame}[fragile]{Logging like a bawse}
+  \begin{lstlisting}
+    git log --decorate --oneline --graph
+  \end{lstlisting}
+
+  \begin{columns}[T] % contents are top vertically aligned
+     \begin{column}[T]{.5\textwidth} % each column can also be its own environment
+       \includegraphics[width=\textwidth]{bad-log}
+       Bad log
+     \end{column}
+     \begin{column}[T]{.5\textwidth} % alternative top-align that's better for graphics
+       \includegraphics[width=\textwidth]{good-log}
+       Good log
+     \end{column}
+   \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Show me your secrets}
+
+  Show the changes made in a given commit:
+  \begin{lstlisting}
+    git diff <commit>^!
+  \end{lstlisting}
+
+  Show the staged changes (what will be committed)
+  \begin{lstlisting}
+    git diff --staged
+  \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Blame it on the new guy}
+
+  Git blame, aka 'Vem var det som kasta!'\\
+  Show the changes made in a given commit:
+  \begin{lstlisting}
+    git blame <file>
+  \end{lstlisting}
+
+  \includegraphics[width=\textwidth]{blame}
+\end{frame}
+
+\section{Welp that was stupid}
+\begin{frame}{Do it right, right a way}
+  \begin{itemize}
+    \item \textbf{Use an ignorefile!}, you probably want to set it up before anything.\\
+      \href{https://gitignore.io/}{Gitignore.io} is really good.
+    \item A global ignorefile can be good also if you work in similar languages or types of projects.\\
+      Simply create an ignore file at $~/.gitignore\_global$\\
+      Then run $git config --global core.excludesfile ~/.gitignore\_global$
+  \end{itemize}
+\end{frame}
+
+\section{Bisecting FTW}
+\begin{frame}[fragile]{Finding that pesky bug}
+  Git bisect is a general command to binary search for \textbf{any} property, but most commonly a bug.
+
+  \begin{lstlisting}
+> git bisect start
+> git bisect bad
+> git bisect good e7f9b07
+Bisecting: 13 revisions left to test
+after this (roughly 4 steps)
+[ea7de...] Implement event forwarding
+  \end{lstlisting}
+  Then run \textit{git bisect good} if that version works, or \textit{git bisect bad} if it does not work until you are left with the commit you were searching for.
+\end{frame}
+
+\section{Teamwork makes the dream work}
+
+\begin{frame}[fragile]{Try to make sense, okay}
+  \begin{columns}[T] % contents are top vertically aligned
+     \begin{column}[T]{.5\textwidth} % each column can also be its own environment
+      Writing a good commit message is art.
+      But here are some guidelines:
+
+      \begin{itemize}
+        \item Limit the subject line to 50 characters
+        \item Capitalize the subject line
+        \item Do not end the subject line with a period
+        \item Use the imperative mood in the subject line\\
+          'Refactor A by moving Y' not 'Refactored A by moving Y'\\
+          I.e like a command!
+      \end{itemize}
+
+      \url{https://chris.beams.io/posts/git-commit/}
+     \end{column}
+     \begin{column}[T]{.5\textwidth} % alternative top-align that's better for graphics
+      \includegraphics[width=\textwidth]{commit-logs}
+
+     \end{column}
+   \end{columns}
+
+\end{frame}
+
+\begin{frame}[fragile]{Code reviews, code review, code reviews}
+  \begin{columns}[T] % contents are top vertically aligned
+     \begin{column}[T]{.5\textwidth} % each column can also be its own environment
+      Use code reviews for everything, and I mean \textbf{everything}!\\
+      We used it to great effect in writing reports!\\
+      For each topic branch, use some type of code review.
+
+      You will:
+      \begin{itemize}
+        \item Spread knowledge about what is being worked on, and changed (knowledge sharing)
+        \item Catch bugs and faults early!
+      \end{itemize}
+
+     \end{column}
+     \begin{column}[T]{.5\textwidth} % alternative top-align that's better for graphics
+      \includegraphics[width=\textwidth]{pum-example}
+     \end{column}
+   \end{columns}
+
+\end{frame}
+
+\section{Questions and demo?}
+
+\end{document}
